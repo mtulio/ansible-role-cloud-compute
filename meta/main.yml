@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  author: Marco Tulio R Braga
+  description: Manage Cloud Compute resources
+  company: MTOps
+  license: Apache v2
+  min_ansible_version: 4.10
+  platforms:
+    - name: AWS
+      versions:
+        - all
+  galaxy_tags: []
+
+dependencies: []
