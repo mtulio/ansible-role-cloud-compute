@@ -10,8 +10,18 @@
     description: "Instance Profile for {{ machine.instance_role }}"
     assume_role_policy_document: "{{ machine.instance_role_spec.assume_role_policy_document |d(lookup('file','iam-role-policy-ec2.json')) }}"
     managed_policies: "{{ machine.instance_role_spec.managed_policies |d(omit) }}"
+    policy_document: "{{ machine.instance_role_spec.policy_document |d(omit) }}"
     tags: "{{ machine.instance_role_spec.tags |d(omit) }}"
-  register: iam_create
+  #register: iam_create
+
+- name: EC2 | Ensuring IAM policy exists
+  iam_policy:
+    iam_type: role
+    iam_name: "{{ machine.instance_role }}"
+    policy_name: "{{ machine.iam_policy_name }}"
+    state: present
+    policy_json: "{{ machine.instance_policy_spec.policy_json }}"
+  #when: machine.iam_policy_name is defined
 
 - name: EC2 | Creating instance(s)
   ec2_instance:
@@ -39,7 +49,10 @@
     tenancy: "{{ machine.tenancy |d(omit) }}"
     termination_protection: "{{ machine.termination_protection |d(omit) }}"
     tower_callback: "{{ machine.tower_callback |d(omit) }}"
-    user_data: "{{ machine.user_data |d(omit) }}"
+    # There's a bug on the default var '(omit)' when using ign (json),
+    # the module is not property formating the user_data from vars,
+    # then the node will not run correctly on the boot.
+    user_data: "{{ machine.user_data | string }}"
     volumes: "{{ machine.volumes |d(omit) }}"
     vpc_subnet_id: "{{ machine.vpc_subnet_id |d(omit) }}"
     wait: "{{ machine.wait |d(omit) }}"
