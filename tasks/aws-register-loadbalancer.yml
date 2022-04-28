@@ -1,0 +1,17 @@
+---
+
+- name: Discovery Instance IP
+  set_fact:
+    machine_target_id: "{{ machine_out.instances[0].private_ip_address }}"
+  when: reg.resource_type == 'ip'
+
+- name: Discovery Instance ID
+  set_fact:
+    machine_target_id: "{{ machine_out.instances[0].private_ip_address }}"
+  when: reg.resource_type == 'instanceId'
+
+- name: "Attach EC2 to Target Group {{ reg.resource_name }}"
+  community.aws.elb_target:
+    target_group_name: "{{ reg.resource_name }}"
+    target_id: "{{ machine_target_id }}"
+    state: present
