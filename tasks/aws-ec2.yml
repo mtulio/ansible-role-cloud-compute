@@ -23,6 +23,26 @@
     policy_json: "{{ machine.instance_policy_spec.policy_json }}"
   #when: machine.iam_policy_name is defined
 
+
+#- name: Discovery subnet ID from name
+#  block:
+- name: Get facts for subnet
+  ec2_vpc_subnet_facts:
+    filters:
+      "tag:Name": "{{ machine.vpc_subnet_name }}"
+  register: sb_out
+  when:  machine.vpc_subnet_name is defined
+
+- name: Set subnet ID from name
+  set_fact:
+    subnet_id: "{{ sb_out.subnets[0].subnet_id }}"
+  when: machine.vpc_subnet_name is defined
+
+- name: Discovery subnet ID from name
+  set_fact:
+    subnet_id: "{{ machine.vpc_subnet_id }}"
+  when: machine.vpc_subnet_id is defined
+
 - name: EC2 | Creating instance(s)
   ec2_instance:
     availability_zone: "{{ machine.availability_zone |d(omit) }}"
@@ -44,23 +64,28 @@
     region: "{{ machine.region |d(omit) }}"
     security_group: "{{ machine.security_group |d(omit) }}"
     security_groups: "{{ machine.security_groups |d(omit) }}"
-    state: "{{ machine.state |d(omit) }}"
-    tags: "{{ machine.tags |d(omit) }}"
-    tenancy: "{{ machine.tenancy |d(omit) }}"
-    termination_protection: "{{ machine.termination_protection |d(omit) }}"
-    tower_callback: "{{ machine.tower_callback |d(omit) }}"
+    state: "{{ machine.state | d(omit) }}"
+    tags: "{{ machine.tags | d(omit) }}"
+    tenancy: "{{ machine.tenancy | d(omit) }}"
+    termination_protection: "{{ machine.termination_protection | d(omit) }}"
+    tower_callback: "{{ machine.tower_callback | d(omit) }}"
     # There's a bug on the default var '(omit)' when using ign (json),
     # the module is not property formating the user_data from vars,
     # then the node will not run correctly on the boot.
     user_data: "{{ machine.user_data | string }}"
-    volumes: "{{ machine.volumes |d(omit) }}"
-    vpc_subnet_id: "{{ machine.vpc_subnet_id |d(omit) }}"
-    wait: "{{ machine.wait |d(omit) }}"
+    volumes: "{{ machine.volumes | d(omit) }}"
+    vpc_subnet_id: "{{ subnet_id | d(omit) }}"
+    wait: "{{ machine.wait | d(omit) }}"
     wait_timeout: "{{ machine.wait_timeout |d(omit) }}"
-
-  register: machine_created
+  register: machine_out
   #with_items: "{{ machine.instances_by_zone }}"
 
 - name: EC2 | debug Machine created
   debug:
-    var: machine_created
+    var: machine_out
+
+- name: Register EC2 to resources
+  include: "aws-register-{{ reg.service }}.yml"
+  with_items: "{{ machine.register_resources }}"
+  loop_control:
+    loop_var: reg
