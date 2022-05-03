@@ -12,7 +12,7 @@
     managed_policies: "{{ machine.instance_role_spec.managed_policies |d(omit) }}"
     policy_document: "{{ machine.instance_role_spec.policy_document |d(omit) }}"
     tags: "{{ machine.instance_role_spec.tags |d(omit) }}"
-  #register: iam_create
+  register: iam_create
 
 - name: EC2 | Ensuring IAM policy exists
   iam_policy:
@@ -21,7 +21,7 @@
     policy_name: "{{ machine.iam_policy_name }}"
     state: present
     policy_json: "{{ machine.instance_policy_spec.policy_json }}"
-  #when: machine.iam_policy_name is defined
+  when: machine.iam_policy_name is defined
 
 
 #- name: Discovery subnet ID from name
