@@ -1,13 +1,21 @@
 ---
 
+- name: Gather information about any instance with a tag key Name and value Example
+  ec2_instance_info:
+    filters:
+      "tag:Name": "{{ machine.name }}"
+  register: ec2_out
+
+- debug: var=ec2_out
+
 - name: Discovery Instance IP
   set_fact:
-    machine_target_id: "{{ machine_out.instances[0].private_ip_address }}"
+    machine_target_id: "{{ ec2_out.instances[0].private_ip_address }}"
   when: reg.resource_type == 'ip'
 
 - name: Discovery Instance ID
   set_fact:
-    machine_target_id: "{{ machine_out.instances[0].private_ip_address }}"
+    machine_target_id: "{{ ec2_out.instances[0].instance_id }}"
   when: reg.resource_type == 'instanceId'
 
 - name: "Attach EC2 to Target Group {{ reg.resource_name }}"
