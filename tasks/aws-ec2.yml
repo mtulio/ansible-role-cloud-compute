@@ -86,6 +86,6 @@
 
 - name: Register EC2 to resources
   include: "aws-register-{{ reg.service }}.yml"
-  with_items: "{{ machine.register_resources }}"
+  with_items: "{{ machine.register_resources | d([]) }}"
   loop_control:
     loop_var: reg
