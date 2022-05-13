@@ -1,16 +1,22 @@
 ---
-- include: aws-ec2.yml
-  when:
-    - machine.provider == 'aws'
-    - machine.type == 'machine'
-  with_items: "{{ compute_resources }}"
-  loop_control:
-    loop_var: machine
+#- include: aws-ec2.yml
+#  when:
+#    - machine.provider == 'aws'
+#    - machine.type == 'machine'
+#  with_items: "{{ compute_resources }}"
+#  loop_control:
+#    loop_var: machine
 
-- include: azure-vm.yml
-  when:
-    - machine.provider == 'azure'
-    - machine.type == 'machine'
+#- include: azure-vm.yml
+#  when:
+#    - machine.provider == 'azure'
+#    - machine.type == 'machine'
+#  with_items: "{{ compute_resources }}"
+#  loop_control:
+#    loop_var: machine
+
+- include: "{{ machine.provider }}.yml"
+  when: machine.type == 'machine'
   with_items: "{{ compute_resources }}"
   loop_control:
     loop_var: machine
