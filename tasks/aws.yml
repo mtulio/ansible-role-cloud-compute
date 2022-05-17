@@ -80,9 +80,14 @@
   register: machine_out
   #with_items: "{{ machine.instances_by_zone }}"
 
-- name: EC2 | debug Machine created
+- name: EC2 | Machine created spec
   debug:
     var: machine_out
+
+- name: EC2 | Waiting a moment to propagate the request
+  pause:
+    seconds: 10
+  when: not(machine.wait)
 
 - name: Register EC2 to resources
   include: "aws-register-{{ reg.service }}.yml"
