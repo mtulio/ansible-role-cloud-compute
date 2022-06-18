@@ -23,9 +23,6 @@
     policy_json: "{{ machine.instance_policy_spec.policy_json }}"
   when: machine.iam_policy_name is defined
 
-
-#- name: Discovery subnet ID from name
-#  block:
 - name: Get facts for subnet
   ec2_vpc_subnet_facts:
     filters:
@@ -45,6 +42,7 @@
 
 - name: EC2 | Creating instance(s)
   ec2_instance:
+    user_data: "{{ machine.user_data | string }}"
     availability_zone: "{{ machine.availability_zone |d(omit) }}"
     cpu_credit_specification: "{{ machine.cpu_credit_specification |d(omit) }}"
     cpu_options: "{{ machine.cpu_options |d(omit) }}"
@@ -54,7 +52,7 @@
     filters: "{{ machine.filters |d(omit) }}"
     image_id: "{{ machine.image_id |d(omit) }}"
     instance_role: "{{ machine.instance_role |d(omit) }}"
-    instance_type: "{{ machine.instance_type |d(omit) }}"
+    instance_type: "{{ machine.instance_type }}"
     key_name: "{{ machine.key_name |d(omit) }}"
     launch_template: "{{ machine.launch_template |d(omit) }}"
     metadata_options: "{{ machine.metadata_options |d(omit) }}"
@@ -72,13 +70,11 @@
     # There's a bug on the default var '(omit)' when using ign (json),
     # the module is not property formating the user_data from vars,
     # then the node will not run correctly on the boot.
-    user_data: "{{ machine.user_data | string }}"
     volumes: "{{ machine.volumes | d(omit) }}"
     vpc_subnet_id: "{{ subnet_id | d(omit) }}"
     wait: "{{ machine.wait | d(omit) }}"
     wait_timeout: "{{ machine.wait_timeout |d(omit) }}"
   register: machine_out
-  #with_items: "{{ machine.instances_by_zone }}"
 
 - name: EC2 | Machine created spec
   debug:
