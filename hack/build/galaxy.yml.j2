@@ -1,0 +1,18 @@
+---
+namespace: {{ galaxy_namespace }}
+name: {{ galaxy_name }}
+description: {{ galaxy_desc }}
+version: "{{ tag }}"
+readme: README.md
+authors: {{ galaxy_authors }}
+dependencies: {{ galaxy_dependencies }}
+license: {{ galaxy_license }}
+tags: {{ galaxy_tags }}
+repository: {{ galaxy_repo }}
+documentation: {{ galaxy_doc }}
+# homepage: ""
+issues: {{ galaxy_issues }}
+build_ignore:
+  - scripts
+  - molecule
+  - .DS_Store

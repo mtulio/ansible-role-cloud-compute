@@ -1,6 +1,6 @@
 ---
 - name: EC2 | debug show spec
-  debug:
+  ansible.builtin.debug:
     var: machine
 
 - name: EC2 | Ensuring IAM role exists
@@ -28,15 +28,15 @@
     filters:
       "tag:Name": "{{ machine.vpc_subnet_name }}"
   register: sb_out
-  when:  machine.vpc_subnet_name is defined
+  when: machine.vpc_subnet_name is defined
 
 - name: Set subnet ID from name
-  set_fact:
+  ansible.builtin.set_fact:
     subnet_id: "{{ sb_out.subnets[0].subnet_id }}"
   when: machine.vpc_subnet_name is defined
 
 - name: Discovery subnet ID from name
-  set_fact:
+  ansible.builtin.set_fact:
     subnet_id: "{{ machine.vpc_subnet_id }}"
   when: machine.vpc_subnet_id is defined
 
@@ -77,11 +77,11 @@
   register: machine_out
 
 - name: EC2 | Machine created spec
-  debug:
+  ansible.builtin.debug:
     var: machine_out
 
 - name: EC2 | Waiting a moment to propagate the request
-  pause:
+  ansible.builtin.pause:
     seconds: 10
   when: not(machine.wait)
 

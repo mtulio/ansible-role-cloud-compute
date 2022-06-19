@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  connection: local
+  tasks:
+    - name: "Include mtulio.cloud-compute"
+      ansible.builtin.include_role:
+        name: "mtulio.cloud-compute"

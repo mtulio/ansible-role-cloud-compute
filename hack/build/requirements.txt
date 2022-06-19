@@ -1,0 +1,3 @@
+ansible==4.10
+molecule
+ansible-lint

@@ -1,0 +1,18 @@
+---
+git_user: "Marco Braga"
+git_email: "braga@mtulio.eng.br"
+galaxy_name: cloud-compute
+galaxy_namespace: mtulio
+galaxy_desc: Ansile Role to provision compute resources on cloud providers
+galaxy_repo: https://github.com/mtulio/ansible-role-cloud-compute
+galaxy_doc: "{{ galaxy_repo }}"
+galaxy_issues: "{{ galaxy_repo }}/issues"
+galaxy_tags:
+    - cloud
+    - compute
+    - devops
+galaxy_license: 
+    - MIT
+galaxy_dependencies: {}
+galaxy_authors:
+    - mtulio (https://mtulio.net/)

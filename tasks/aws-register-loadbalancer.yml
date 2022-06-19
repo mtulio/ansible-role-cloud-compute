@@ -6,15 +6,13 @@
       "tag:Name": "{{ machine.name }}"
   register: ec2_out
 
-- debug: var=ec2_out
-
 - name: Discovery Instance IP
-  set_fact:
+  ansible.builtin.set_fact:
     machine_target_id: "{{ ec2_out.instances[0].private_ip_address }}"
   when: reg.resource_type == 'ip'
 
 - name: Discovery Instance ID
-  set_fact:
+  ansible.builtin.set_fact:
     machine_target_id: "{{ ec2_out.instances[0].instance_id }}"
   when: reg.resource_type == 'instanceId'
 
