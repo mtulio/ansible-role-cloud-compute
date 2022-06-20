@@ -1,6 +1,6 @@
 ---
 
-- name: Gather information about any instance with a tag key Name and value Example
+- name: Gather EC2 Info - Name
   ec2_instance_info:
     filters:
       "tag:Name": "{{ machine.name }}"

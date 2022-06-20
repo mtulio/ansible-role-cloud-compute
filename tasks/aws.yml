@@ -8,8 +8,12 @@
     name: "{{ machine.instance_role }}"
     state: present
     description: "Instance Profile for {{ machine.instance_role }}"
-    assume_role_policy_document: "{{ machine.instance_role_spec.assume_role_policy_document |d(lookup('file','iam-role-policy-ec2.json')) }}"
-    managed_policies: "{{ machine.instance_role_spec.managed_policies |d(omit) }}"
+    assume_role_policy_document: \
+      "{{ machine.instance_role_spec.assume_role_policy_document |
+        d(lookup('file','iam-role-policy-ec2.json')) \
+      }}"
+    managed_policies: \
+      "{{ machine.instance_role_spec.managed_policies |d(omit) }}"
     policy_document: "{{ machine.instance_role_spec.policy_document |d(omit) }}"
     tags: "{{ machine.instance_role_spec.tags |d(omit) }}"
   register: iam_create
