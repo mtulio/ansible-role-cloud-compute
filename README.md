@@ -1,11 +1,14 @@
 # ansible-role-cloud-compute
 
-Ansible Role to manage Cloud Compute Resources.
+![](https://github.com/mtulio/ansible-role-cloud-compute/actions/workflows/release.yml/badge.svg)
+![](https://github.com/mtulio/ansible-role-cloud-compute/actions/workflows/ci.yml/badge.svg?branch=main)
+![](https://img.shields.io/ansible/role/59505)
+
+
+Ansible Role to manage cloud compute resources.
 
 Requirements
 ------------
-
-All Providers:
 
 * ansible >= 2.10
 
@@ -17,12 +20,17 @@ Provider=AWS:
 Role Variables
 --------------
 
-`cloud_networks`: List of networks to be created on the Cloud Provider.
+`compute_resources`: List of compute resources to be created. Only `machine` is supported.
+
+<!--
 
 Dependencies
 ------------
 
 > TBD
+
+-->
+
 
 Usage
 -----
