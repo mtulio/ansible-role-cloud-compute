@@ -3,6 +3,6 @@
   hosts: all
   connection: local
   tasks:
-    - name: "Include mtulio.cloud-compute"
+    - name: "Include mtulio.cloud_compute"
       ansible.builtin.include_role:
-        name: "mtulio.cloud-compute"
+        name: "mtulio.cloud_compute"
