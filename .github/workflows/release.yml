@@ -37,5 +37,6 @@ jobs:
       - name: Trigger a new import on Galaxy.
         run: >-
           ansible-galaxy role import \
+            --role-name cloud_compute \
             --api-key ${{ secrets.ANSIBLE_GALAXY_TOKEN }} \
-            mtulio cloud_compute
+            mtulio ansible-role-cloud-compute
