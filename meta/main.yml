@@ -4,12 +4,23 @@ galaxy_info:
   author: mtulio
   description: Manage Cloud Compute resources
   # company: MTOps
-  license: Apache v2
-  min_ansible_version: 4.10
-  platforms:
-    - name: AWS
-      versions:
-        - all
-  galaxy_tags: []
+  license: Apache-2.0
+  min_ansible_version: "4.1"
+  platforms: []
+  #  - name: AWS
+  #    versions:
+  #      - all
+  galaxy_tags:
+    - cloud
+    - compute
+    - aws
+    - amazon
+    - ec2
+    - digitalocean
+    - droplets
+
+  cloud_platforms:
+    - amazon
+    - digitalocean
 
 dependencies: []

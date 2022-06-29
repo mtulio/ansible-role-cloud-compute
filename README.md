@@ -1,5 +1,6 @@
 # ansible-role-cloud-compute
 
+[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 ![](https://github.com/mtulio/ansible-role-cloud-compute/actions/workflows/release.yml/badge.svg)
 ![](https://github.com/mtulio/ansible-role-cloud-compute/actions/workflows/ci.yml/badge.svg?branch=main)
 ![](https://img.shields.io/ansible/role/59505)
