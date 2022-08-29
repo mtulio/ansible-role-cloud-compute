@@ -1,0 +1,54 @@
+---
+
+- name: IONOS | Machine | Datacemter Info
+  ionoscloudsdk.ionoscloud.datacenter:
+    name: "{{ machine.datacenter_name }}"
+    location: "{{ machine.spec.location }}"
+  register: dc
+
+- name: IONOS | Machine | Datacemter Show
+  debug:
+    var: dc
+
+- name: IONOS | Machine | LAN Info
+  ionoscloudsdk.ionoscloud.lan:
+    datacenter: "{{ dc.datacenter.id }}"
+    name: "{{ machine.lan_name }}"
+    state: present
+  register: lan
+  when: machine.lan_name is defined
+
+- name: IONOS | Machine | LAN Show
+  debug:
+    var: lan
+  when: machine.lan_name is defined
+
+- name: IONOS | Machine | Create
+  ionoscloudsdk.ionoscloud.server:
+    datacenter: "{{ dc.datacenter.id }}"
+    name: "{{ machine.name }}"
+    cores: "{{ machine.spec.cores }}"
+    ram: "{{ machine.spec.ram }}"
+    volume_size: "{{ machine.spec.volume_size }}"
+    cpu_family: "{{ machine.spec.cpu_family | d(omit) }}"
+    image: "{{ machine.spec.image }}"
+    location: "{{ machine.spec.location }}"
+    count: "{{ machine.spec.count | d(omit) }}"
+    lan: "{{ lan.lan.id | d(omit) }}"
+    nic_ips: "{{ machine.spec.nic_ips | d(omit) }}"
+    assign_public_ip: "{{ machine.spec.assign_public_ip | d(omit) }}"
+    availability_zone: "{{ machine.spec.availability_zone | d(omit) }}"
+    volume_availability_zone: "{{ machine.spec.volume_availability_zone | d(omit) }}"
+    nat: "{{ machine.spec.nat | d(omit) }}"
+    image_password: "{{ machine.spec.image_password | d(omit) }}"
+  register: machine_out
+
+- name: IONOS | Machine | Show
+  debug:
+    var: machine_out
+
+- name: IONOS | Machine | Create NICs
+  include_tasks: ionos-nic.yml
+  with_items: "{{ machine.nics }}"
+  loop_control:
+    loop_var: nic

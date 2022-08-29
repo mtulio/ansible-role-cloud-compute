@@ -1,0 +1,22 @@
+---
+- name: IONOS | Get Lan LB Info
+  ionoscloudsdk.ionoscloud.lan:
+    datacenter: "{{ dc.datacenter.id }}"
+    name: "{{ nic.lan_name }}"
+  register: lan_nic
+
+- name: IONOS | create NIC
+  ionoscloudsdk.ionoscloud.nic:
+    datacenter: "{{ dc.datacenter.id }}"
+    server: "{{ machine.name }}"
+    name: "{{ nic.name }}"
+    lan: "{{ lan_nic.lan.id }}"
+    ips: "{{ nic.ips | d(omit) }}"
+    dhcp: "{{ nic.dhcp | d(omit) }}"
+    firewall_active: "{{ nic.firewall_active | d(omit) }}"
+    state: present
+  register: nic_res
+
+- name: IONOS | NIC Show
+  debug:
+    var: nic_res
