@@ -52,7 +52,7 @@
   when: machine.vpc_subnet_id is defined
 
 - name: EC2 | Creating instance(s)
-  ec2_instance:
+  amazon.aws.ec2_instance:
     user_data: "{{ machine.user_data | string }}"
     availability_zone: "{{ machine.availability_zone |d(omit) }}"
     cpu_credit_specification: "{{ machine.cpu_credit_specification |d(omit) }}"
