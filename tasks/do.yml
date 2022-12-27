@@ -1,4 +1,4 @@
----
+--- # WARNING: tasks file is working in progress
 - name: DO | debug show spec
   ansible.builtin.debug:
     var: machine
@@ -66,7 +66,7 @@
     var: do_machine
 
 # - name: Register EC2 to resources
-#  include: "aws-register-{{ reg.service }}.yml"
+#  ansible.builtin.include_tasks: "aws-register-{{ reg.service }}.yml"
 #  with_items: "{{ machine.register_resources | d([]) }}"
 #  loop_control:
 #    loop_var: reg

@@ -1,10 +1,11 @@
 ---
-- name: EC2 | debug show spec
+- name: AWS EC2 | debug show spec
   ansible.builtin.debug:
     var: machine
+  when: debug|d(false)
 
-- name: EC2 | Ensuring IAM role exists
-  iam_role:
+- name: AWS EC2 | Ensuring IAM role exists
+  community.aws.iam_role:
     name: "{{ machine.instance_role }}"
     state: present
     description: "Instance Profile for {{ machine.instance_role }}"
@@ -18,8 +19,8 @@
     tags: "{{ machine.instance_role_spec.tags |d(omit) }}"
   register: iam_create
 
-- name: EC2 | Ensuring IAM policy exists
-  iam_policy:
+- name: AWS EC2 | Ensuring IAM policy exists
+  community.aws.iam_policy:
     iam_type: role
     iam_name: "{{ machine.instance_role }}"
     policy_name: "{{ machine.iam_policy_name }}"
@@ -27,31 +28,31 @@
     policy_json: "{{ machine.instance_policy_spec.policy_json }}"
   when: machine.iam_policy_name is defined
 
-- name: Get facts for subnet
+- name: AWS EC2 | Discovery subnet ID
   amazon.aws.ec2_vpc_subnet_info:
     filters:
       "tag:Name": "{{ machine.vpc_subnet_name }}"
   register: sb_out
   when: machine.vpc_subnet_name is defined
 
-- name: Load Balancer | AWS | SubnetIDs check
+- name: AWS EC2 | Check subnet ID
   ansible.builtin.assert:
     that:
       - sb_out.subnets|length > 0
     fail_msg: "'subnet_ids' is empty.\
               Unable to find subnet with name '{{ machine.vpc_subnet_name }}'"
 
-- name: Set subnet ID from name
+- name: AWS EC2 | Set subnet ID from name
   ansible.builtin.set_fact:
     subnet_id: "{{ sb_out.subnets[0].subnet_id }}"
   when: machine.vpc_subnet_name is defined
 
-- name: Discovery subnet ID from name
+- name: AWS EC2 | Discovery subnet ID from name
   ansible.builtin.set_fact:
     subnet_id: "{{ machine.vpc_subnet_id }}"
   when: machine.vpc_subnet_id is defined
 
-- name: EC2 | Creating instance(s)
+- name: AWS EC2 | Creating instance(s)
   amazon.aws.ec2_instance:
     user_data: "{{ machine.user_data | string }}"
     availability_zone: "{{ machine.availability_zone |d(omit) }}"
@@ -87,17 +88,20 @@
     wait_timeout: "{{ machine.wait_timeout |d(omit) }}"
   register: machine_out
 
-- name: EC2 | Machine created spec
+- name: AWS EC2 | Machine created spec
   ansible.builtin.debug:
     var: machine_out
+  when: debug|d(false)
 
-- name: EC2 | Waiting a moment to propagate the request
+- name: AWS EC2 | Waiting a moment to propagate the request
   ansible.builtin.pause:
     seconds: 10
-  when: not(machine.wait)
+  when:
+   - not(machine.wait)
+   - machine_out.changed
 
-- name: Register EC2 to resources
-  include: "aws-register-{{ reg.service }}.yml"
+- name: AWS EC2 | Register to resource Load Balancer
+  ansible.builtin.include_tasks: "aws-register-{{ reg.service }}.yml"
   with_items: "{{ machine.register_resources | d([]) }}"
   loop_control:
     loop_var: reg

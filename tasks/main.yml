@@ -1,6 +1,7 @@
 ---
-- include: "{{ machine.provider }}.yml"
+- ansible.builtin.include_tasks: "{{ machine.provider }}.yml"
   when: machine.type == 'machine'
   with_items: "{{ compute_resources }}"
   loop_control:
     loop_var: machine
+  no_log: "{{ not debug|d(false) }}"
