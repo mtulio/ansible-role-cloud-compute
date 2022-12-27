@@ -1,6 +1,6 @@
 ---
 
-- name: EC2 | Register LB | Gather EC2 Info by Name
+- name: EC2 | Register LB | TG={{ reg.resource_name }}
   amazon.aws.ec2_instance_info:
     filters:
       "tag:Name": "{{ machine.name }}"
@@ -16,7 +16,7 @@
     machine_target_id: "{{ ec2_out.instances[0].instance_id }}"
   when: reg.resource_type == 'instanceId'
 
-- name: EC2 | Register LB | "Attach EC2 to the Target Group {{ reg.resource_name }}"
+- name: EC2 | Register LB | Target={{ machine_target_id }}
   community.aws.elb_target:
     target_group_name: "{{ reg.resource_name }}"
     target_id: "{{ machine_target_id }}"
