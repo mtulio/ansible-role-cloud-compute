@@ -1,9 +1,8 @@
 # ansible-role-cloud-compute
 
-![](https://github.com/mtulio/ansible-role-cloud-compute/actions/workflows/release.yml/badge.svg)
-![](https://github.com/mtulio/ansible-role-cloud-compute/actions/workflows/ci.yml/badge.svg?branch=main)
-![](https://img.shields.io/ansible/role/59505)
-
+[![](https://github.com/mtulio/ansible-role-cloud-compute/actions/workflows/release.yml/badge.svg)](https://github.com/mtulio/ansible-role-cloud-compute/actions/workflows/release.yml)
+[![](https://github.com/mtulio/ansible-role-cloud-compute/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mtulio/ansible-role-cloud-compute/actions/workflows/ci.yml)
+[![](https://img.shields.io/ansible/role/59505)](https://galaxy.ansible.com/mtulio/cloud_compute)
 
 Ansible Role to manage cloud compute resources.
 
