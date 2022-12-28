@@ -1,15 +1,18 @@
----
-galaxy_info:
+galaxy_info: # noqa: schema[meta]
   role_name: cloud_compute
   author: mtulio
   description: Manage Cloud Compute resources
   # company: MTOps
   license: Apache v2
-  min_ansible_version: 4.10
+  min_ansible_version: "4.10"
   platforms:
-    - name: AWS
+    - name: Amazon
       versions:
         - all
   galaxy_tags: []
+
+  cloud_platforms:
+    - amazon
+    - digitalocean
 
 dependencies: []

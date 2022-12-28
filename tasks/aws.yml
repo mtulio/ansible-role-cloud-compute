@@ -2,7 +2,7 @@
 - name: AWS EC2 | debug show spec
   ansible.builtin.debug:
     var: machine
-  when: debug|d(false)
+  when: debug| d(false)
 
 - name: AWS EC2 | Ensuring IAM role exists
   community.aws.iam_role:
@@ -10,13 +10,13 @@
     state: present
     description: "Instance Profile for {{ machine.instance_role }}"
     assume_role_policy_document: "{{ machine.instance_role_spec.\
-        assume_role_policy_document |\
-        d(lookup('file','iam-role-policy-ec2.json')) \
-      }}"
+        assume_role_policy_document | \
+        d(lookup('file', 'iam-role-policy-ec2.json')) }}"
     managed_policies: "{{ machine.instance_role_spec.\
-                          managed_policies |d(omit) }}"
-    policy_document: "{{ machine.instance_role_spec.policy_document |d(omit) }}"
-    tags: "{{ machine.instance_role_spec.tags |d(omit) }}"
+        managed_policies | d(omit) }}"
+    policy_document: "{{ machine.instance_role_spec.policy_document | \
+        d(omit) }}"
+    tags: "{{ machine.instance_role_spec.tags | d(omit) }}"
   register: iam_create
 
 - name: AWS EC2 | Ensuring IAM policy exists
@@ -54,44 +54,59 @@
 
 - name: AWS EC2 | Creating instance(s)
   amazon.aws.ec2_instance:
-    user_data: "{{ machine.user_data | string }}"
-    availability_zone: "{{ machine.availability_zone |d(omit) }}"
-    cpu_credit_specification: "{{ machine.cpu_credit_specification |d(omit) }}"
-    cpu_options: "{{ machine.cpu_options |d(omit) }}"
-    detailed_monitoring: "{{ machine.detailed_monitoring |d(omit) }}"
-    ebs_optimized: "{{ machine.ebs_optimized |d(omit) }}"
-    ec2_url: "{{ machine.ec2_url |d(omit) }}"
-    filters: "{{ machine.filters |d(omit) }}"
-    image_id: "{{ machine.image_id |d(omit) }}"
-    instance_role: "{{ machine.instance_role |d(omit) }}"
-    instance_type: "{{ machine.instance_type }}"
-    key_name: "{{ machine.key_name |d(omit) }}"
-    launch_template: "{{ machine.launch_template |d(omit) }}"
-    metadata_options: "{{ machine.metadata_options |d(omit) }}"
-    network: "{{ machine.network |d(omit) }}"
-    placement_group: "{{ machine.placement_group |d(omit) }}"
-    purge_tags: "{{ machine.purge_tags |d(omit) }}"
-    region: "{{ machine.region |d(omit) }}"
-    security_group: "{{ machine.security_group |d(omit) }}"
-    security_groups: "{{ machine.security_groups |d(omit) }}"
     state: "{{ machine.state | d(omit) }}"
+    region: "{{ machine.region | d(omit) }}"
+    cpu_credit_specification: "{{ machine.cpu_credit_specification | d(omit) }}"
+    detailed_monitoring: "{{ machine.detailed_monitoring | d(omit) }}"
+    ebs_optimized: "{{ machine.ebs_optimized | d(omit) }}"
+    ec2_url: "{{ machine.ec2_url | d(omit) }}"
+    filters: "{{ machine.filters | d(omit) }}"
+    image_id: "{{ machine.image_id | d(omit) }}"
+    instance_role: "{{ machine.instance_role | d(omit) }}"
+    instance_type: "{{ machine.instance_type }}"
+    key_name: "{{ machine.key_name | d(omit) }}"
+    launch_template: "{{ machine.launch_template | d(omit) }}"
+    network: "{{ machine.network | d(omit) }}"
+    placement_group: "{{ machine.placement_group | d(omit) }}"
+    purge_tags: "{{ machine.purge_tags | d(omit) }}"
     tags: "{{ machine.tags | d(omit) }}"
     tenancy: "{{ machine.tenancy | d(omit) }}"
     termination_protection: "{{ machine.termination_protection | d(omit) }}"
-    tower_callback: "{{ machine.tower_callback | d(omit) }}"
-    # There's a bug on the default var '(omit)' when using ign (json),
+    volumes: "{{ machine.volumes | d(omit) }}"
+    wait: "{{ machine.wait | d(omit) }}"
+    wait_timeout: "{{ machine.wait_timeout | d(omit) }}"
+
+    ## NOTE/TODO fix: CI(ansible-lint) Violations
+    # > args[module]: parameters are mutually
+    # exclusive: availability_zone|vpc_subnet_id
+
+    availability_zone: "{{ machine.availability_zone | d(omit) }}"
+    vpc_subnet_id: "{{ subnet_id | d(omit) }}"
+
+    # > args[module]: parameters are mutually
+    # exclusive: security_groups|security_group (warning)
+
+    security_group: "{{ machine.security_group | d(omit) }}"
+    security_groups: "{{ machine.security_groups | d(omit) }}"
+
+    # > args[module]: unable to evaluate string as dictionary (warning)
+    cpu_options: "{{ machine.cpu_options | d(omit) }}"
+    metadata_options: "{{ machine.metadata_options | d(omit) }}"
+
+    # > There's a bug on the default var '(omit)' when using ign (json),
     # the module is not property formating the user_data from vars,
     # then the node will not run correctly on the boot.
-    volumes: "{{ machine.volumes | d(omit) }}"
-    vpc_subnet_id: "{{ subnet_id | d(omit) }}"
-    wait: "{{ machine.wait | d(omit) }}"
-    wait_timeout: "{{ machine.wait_timeout |d(omit) }}"
+    # > args[module]: parameters are mutually
+    # exclusive: tower_callback|user_data (warning)
+
+    tower_callback: "{{ machine.tower_callback | d(omit) }}"
+    user_data: "{{ machine.user_data | string | d(omit) }}"
   register: machine_out
 
 - name: AWS EC2 | Machine created spec
   ansible.builtin.debug:
     var: machine_out
-  when: debug|d(false)
+  when: debug| d(false)
 
 - name: AWS EC2 | Waiting a moment to propagate the request
   ansible.builtin.pause:
