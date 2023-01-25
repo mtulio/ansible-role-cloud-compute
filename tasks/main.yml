@@ -1,5 +1,5 @@
 ---
-- name: Include provider
+- name: Setup Compute by provider
   ansible.builtin.include_tasks: "{{ machine.provider }}.yml"
   when: machine.type == 'machine'
   with_items: "{{ compute_resources }}"
