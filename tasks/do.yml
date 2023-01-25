@@ -4,18 +4,18 @@
   ansible.builtin.debug:
     var: machine
 
-- name: Set VPC and Image ID
+- name: DO | Set VPC and Image ID
   ansible.builtin.set_fact:
     vpc_uuid: "{{ machine.vpc_uuid | d('') }}"
     image_id: "{{ machine.image_id | d('') }}"
 
 # API does not return when member=true name=vpc_name
-- name: Compute | DO | Lookup for vpc_uuid
+- name: DO | Lookup for vpc_uuid
   community.digitalocean.digital_ocean_vpc_info:
   register: do_vpc
   when: vpc_uuid | length == 0
 
-- name: Compute| DO | Set vpc_uuid
+- name: DO | Set vpc_uuid
   ansible.builtin.set_fact:
     vpc_uuid: "{{ do_vpc.data | json_query(filter_vpc) | join(' ') }}"
   when:
@@ -24,13 +24,13 @@
   vars:
     filter_vpc: "[?name=='{{ machine.vpc_name }}'].id"
 
-- name: Gather information about all images
+- name: DO | Gather information about all images
   community.digitalocean.digital_ocean_image_info:
     image_type: private
   when: image_id | length == 0
   register: do_img
 
-- name: Compute| DO | Set image_id
+- name: DO | Set image_id
   ansible.builtin.set_fact:
     image_id: "{{ do_img.data | json_query(filter_image) | join(' ') }}"
   when:
@@ -39,14 +39,14 @@
   vars:
     filter_image: "[?name=='{{ machine.image_name }}'].id"
 
-- name: Create ssh key
+- name: DO | Create ssh key
   community.digitalocean.digital_ocean_sshkey:
     name: "{{ machine.ssh_key.name }}"
     ssh_pub_key: "{{ machine.ssh_key.pub_key }}"
     state: present
   register: do_sshk
 
-- name: Create a new Droplet
+- name: DO | Create a new Droplet
   community.digitalocean.digital_ocean_droplet:
     state: present
     name: "{{ machine.name }}"
@@ -62,6 +62,6 @@
     wait_timeout: 500
   register: do_machine
 
-- name: EC2 | debug Machine created
+- name: DO | debug Machine created
   ansible.builtin.debug:
     var: do_machine

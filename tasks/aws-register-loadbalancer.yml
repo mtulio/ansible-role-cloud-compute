@@ -1,22 +1,22 @@
 ---
 
-- name: EC2 | Register LB | TG={{ reg.resource_name }}
+- name: AWS | Register LB | TG={{ reg.resource_name }}
   amazon.aws.ec2_instance_info:
     filters:
       "tag:Name": "{{ machine.name }}"
   register: ec2_out
 
-- name: EC2 | Register LB | Discovery Instance IP
+- name: AWS | Register LB | Discovery Instance IP
   ansible.builtin.set_fact:
     machine_target_id: "{{ ec2_out.instances[0].private_ip_address }}"
   when: reg.resource_type == 'ip'
 
-- name: EC2 | Register LB | Discovery Instance ID
+- name: AWS | Register LB | Discovery Instance ID
   ansible.builtin.set_fact:
     machine_target_id: "{{ ec2_out.instances[0].instance_id }}"
   when: reg.resource_type == 'instanceId'
 
-- name: EC2 | Register LB | Target={{ machine_target_id }}
+- name: AWS | Register LB | Target={{ machine_target_id }}
   community.aws.elb_target:
     target_group_name: "{{ reg.resource_name }}"
     target_id: "{{ machine_target_id }}"
