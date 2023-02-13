@@ -1,0 +1,21 @@
+---
+- name: OCI | Callback | Backend | facts
+  oracle.oci.oci_network_load_balancer_backend_set_facts:
+    backend_set_name: "{{ nlb_be.name }}"
+    network_load_balancer_id: "{{ nlb_id }}"
+  register: _bset
+
+- debug: var=_bset
+
+- name: OCI | Callback | Backend | merge
+  ansible.builtin.set_fact:
+    backends: '{{ _bset.backend_sets[0].backends + [{
+      "port": nlb_be.port,
+      "target_id": _machine.instance.id,
+      "ip_address": _machine.instance.primary_private_ip }] }}'
+
+- name: OCI | Callback | Backend | update
+  oracle.oci.oci_network_load_balancer_backend_set:
+    backends: "{{ backends }}"
+    name: "{{ nlb_be.name }}"
+    network_load_balancer_id: "{{ nlb_id }}"
