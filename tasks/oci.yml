@@ -14,95 +14,22 @@
   ansible.builtin.set_fact:
     machine_spec: "{{ machine.spec }}"
 
-# Describe NSGs
-- name: OCI | Prereq | Discovery NSGs
-  when:
-  - machine.network_security_group_names is defined
-  - machine.network_security_group_names | d([]) | length > 0
-  block:
-  - name:  OCI | Prereq | Discovery NSGs | facts
-    oracle.oci.oci_network_security_group_facts:
-      compartment_id: "{{ machine.spec.compartment_id }}"
-      display_name: "{{ machine_nsg_name }}"
-    loop: "{{ machine.network_security_group_names }}"
-    loop_control:
-      loop_var: machine_nsg_name
-    register: _nsgs
+- name: List instances
+  oracle.oci.oci_compute_instance_facts:
+    compartment_id: "{{ machine_spec.compartment_id }}"
+    display_name: "{{ machine_spec.display_name }}"
+    sort_by: TIMECREATED
+    sort_order: ASC
+  register: reg_machines
 
-  - name:  OCI | Prereq | Discovery NSGs | Set
-    ansible.builtin.set_fact:
-      machine_nsg_ids: "{{ machine_nsg_ids + [nsg.network_security_groups[0].id] }}"
-    loop: "{{ _nsgs.results }}"
-    loop_control:
-      loop_var: nsg
+- name: OCI | Set Instance fact when exists
+  ansible.builtin.set_fact:
+    machine_data: "{{ reg_machines.instances | first }}"
+  when: reg_machines.instances | length > 0 
 
-  - name:  OCI | Prereq | Discovery NSGs | VNIC defaults
-    when: "'create_vnic_details' not in machine_spec"
-    ansible.builtin.set_fact:
-      machine_spec: '{{ machine_spec | combine({"create_vnic_details": {}}) }}'
-
-  - name:  OCI | Prereq | Discovery NSGs | Merge machine_spec
-    ansible.builtin.set_fact:
-      machine_spec: '{{ machine_spec | combine({
-          "create_vnic_details": machine_spec.create_vnic_details | combine({
-            "nsg_ids": machine_nsg_ids
-          })
-        }) }}'
-
-# Desrcibe Subnet
-- name: OCI | Prereq | Discovery Subnet
-  when: machine.vnic_subnet_name is defined
-  block:
-  - name: OCI | Prereq | Discovery Subnet | facts
-    oracle.oci.oci_network_subnet_facts:
-      compartment_id: "{{ machine.spec.compartment_id }}"
-      display_name: "{{ machine.vnic_subnet_name }}"
-    register: _subnet
-  
-  - name: OCI | Prereq | Discovery Subnet | Set
-    when: "'create_vnic_details' not in machine_spec"
-    ansible.builtin.set_fact:
-      machine_spec: '{{ machine_spec | combine({"create_vnic_details": {}}) }}'
-
-  - name: OCI | Prereq | Discovery Subnet | merge
-    ansible.builtin.set_fact:
-      machine_spec: '{{ machine_spec | combine({
-          "create_vnic_details": machine_spec.create_vnic_details | combine({
-            "subnet_id": _subnet.subnets[0].id
-          })
-        }) }}'
-
-# Describe Image
-- name: OCI | Prereq | Discovery Image
-  when: machine.image_name is defined
-  block:
-  - name: OCI | Prereq | Discovery Image | facts
-    oracle.oci.oci_compute_image_facts:
-      compartment_id: "{{ machine.image_compartment_id | d(machine.spec.compartment_id) }}"
-      display_name: "{{ machine.image_name }}"
-    register: _image
-
-  - name: OCI | Prereq | Discovery Image | Show
-    debug: 
-      msg:
-      - "_image={{ _image }}"
-      - "machine_spec={{ machine_spec }}"
-
-  - name: OCI | Prereq | Discovery Image | merge
-    ansible.builtin.set_fact:
-      machine_spec: '{{ machine_spec | combine({
-        "source_details": machine_spec["source_details"] | d({"source_details":{}}) | combine({
-              "image_id": _image.images[0].id
-            })
-        }) }}'
-
-# Machine Create
-- name: OCI | Show Spec
-  debug: var=machine_spec
-
-- name: OCI | Create Instance
-  oracle.oci.oci_compute_instance: '{{ machine_spec }}'
-  register: _machine
+- name: OCI | Create Init
+  ansible.builtin.include_tasks: "./oci/create.yaml"
+  when: reg_machines.instances | length == 0 
 
 - name: OCI | Start Instance callbacks
   ansible.builtin.include_tasks: "./oci/cb_{{ cb.name }}.yaml"

@@ -2,16 +2,13 @@
 
 - name: OCI | Callback | Describe nlb
   oracle.oci.oci_network_load_balancer_facts:
-    compartment_id: "{{ machine.spec.compartment_id }}"
+    compartment_id: "{{ machine_spec.compartment_id }}"
     display_name: "{{ cb.nlb_name }}"
   register: _nlbs
 
-# TODO : create assert
 - name: OCI | Callback | Set NLB ID
   ansible.builtin.set_fact:
-    nlb_id: "{{ _nlbs.network_load_balancers[0].id }}"
-
-- debug: var=nlb_id
+    nlb_id: "{{ (_nlbs.network_load_balancers | first).id }}"
 
 - name: OCI | Callback | Backend
   ansible.builtin.include_tasks: "./cb_nlb_backend.yaml"
