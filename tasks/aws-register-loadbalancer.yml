@@ -5,6 +5,9 @@
     filters:
       "tag:Name": "{{ machine.name }}"
   register: ec2_out
+  until: "ec2_out is not failed"
+  retries: 10
+  delay: 5
 
 - name: AWS | Register LB | Discovery Instance IP
   ansible.builtin.set_fact:
