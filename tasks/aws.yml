@@ -108,12 +108,12 @@
     var: machine_out
   when: debug| d(false)
 
-- name: AWS | Waiting a moment to propagate the request
-  ansible.builtin.pause:
-    seconds: 10
-  when:
-    - not(machine.wait)
-    - machine_out.changed
+# - name: AWS | Waiting a moment to propagate the request
+#   ansible.builtin.pause:
+#     seconds: 10
+#   when:
+#     - not(machine.wait)
+#     - machine_out.changed
 
 - name: AWS | Register to resource Load Balancer
   ansible.builtin.include_tasks: "aws-register-{{ reg.service }}.yml"
