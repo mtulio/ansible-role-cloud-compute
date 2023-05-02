@@ -5,4 +5,4 @@
   with_items: "{{ compute_resources }}"
   loop_control:
     loop_var: machine
-  no_log: "{{ not debug | d(false) }}"
+    #  no_log: "{{ not debug | d(false) }}"
