@@ -6,38 +6,45 @@
 
 - name: DO | Set VPC and Image ID
   ansible.builtin.set_fact:
-    vpc_uuid: "{{ machine.vpc_uuid | d('') }}"
+    machine_spec: "{{ machine.spec }}"
+    # vpc_uuid: "{{ machine.vpc_uuid | d('') }}"
     image_id: "{{ machine.image_id | d('') }}"
 
 # API does not return when member=true name=vpc_name
-- name: DO | Lookup for vpc_uuid
-  community.digitalocean.digital_ocean_vpc_info:
-  register: do_vpc
-  when: vpc_uuid | length == 0
+- name: DO | Lookup VPC
+  when: machine_spec.vpc_uuid | d('') | length == 0
+  block:
+  - name: DO | Lookup for vpc_uuid
+    community.digitalocean.digital_ocean_vpc_info:
+    register: do_vpc
 
-- name: DO | Set vpc_uuid
-  ansible.builtin.set_fact:
-    vpc_uuid: "{{ do_vpc.data | json_query(filter_vpc) | join(' ') }}"
-  when:
-    - vpc_uuid | length == 0| length == 0
-    - not(do_vpc.failed)
-  vars:
-    filter_vpc: "[?name=='{{ machine.vpc_name }}'].id"
+  - name: DO | Set vpc_uuid
+    ansible.builtin.set_fact:
+      vpc_uuid: "{{ do_vpc.data | json_query(filter_vpc) | join(' ') }}"
+    when: not(do_vpc.failed)
+    vars:
+      filter_vpc: "[?name=='{{ machine.vpc_name }}'].id"
+  
+  - set_fact:
+      machine_spec: "{{ machine_spec | combine({'vpc_uuid': vpc_uuid}) }}"
 
-- name: DO | Gather information about all images
-  community.digitalocean.digital_ocean_image_info:
-    image_type: private
-  when: image_id | length == 0
-  register: do_img
+- name: DO | Lookup Image
+  when: machine_spec.image | d('') | length == 0
+  block:
+  - name: DO | Gather information about all images
+    community.digitalocean.digital_ocean_image_info:
+      image_type: private
+    register: do_img
 
-- name: DO | Set image_id
-  ansible.builtin.set_fact:
-    image_id: "{{ do_img.data | json_query(filter_image) | join(' ') }}"
-  when:
-    - image_id | length == 0
-    - not(do_img.failed)
-  vars:
-    filter_image: "[?name=='{{ machine.image_name }}'].id"
+  - name: DO | Set image_id
+    ansible.builtin.set_fact:
+      image_id: "{{ do_img.data | json_query(filter_image) | join(' ') }}"
+    when: not(do_img.failed)
+    vars:
+      filter_image: "[?name=='{{ machine.image_name }}'].id"
+
+  - set_fact:
+      machine_spec: "{{ machine_spec | combine({'image': image_id}) }}"
 
 - name: DO | Create ssh key
   community.digitalocean.digital_ocean_sshkey:
@@ -46,22 +53,24 @@
     state: present
   register: do_sshk
 
-- name: DO | Create a new Droplet
+- set_fact:
+    machine_spec: "{{ machine_spec | combine({'ssh_keys': [do_sshk.data.ssh_key.id] | d([omit])}) }}"
+
+- name: DO | Create Droplet
   community.digitalocean.digital_ocean_droplet:
-    state: present
-    name: "{{ machine.name }}"
-    unique_name: true
-    project_name: "{{ machine.project_name }}"
-    size: "{{ machine.size }}"
-    region: "{{ machine.region }}"
-    image: "{{ image_id }}"
-    user_data: "{{ machine.user_data }}"
-    ssh_keys: "{{ [do_sshk.data.ssh_key.id] | d([omit]) }}"
-    private_networking: "{{ machine.private_networking | d(omit) }}"
-    vpc_uuid: "{{ machine.vpc_uuid | d(vpc_uuid) }}"
-    wait_timeout: 500
+  args: "{{ machine_spec | combine({
+        'user_data':machine.user_data | to_nice_json | string
+      }) }}"
   register: do_machine
+  until: "do_machine is not failed"
+  retries: 5
+  delay: 5
 
 - name: DO | debug Machine created
   ansible.builtin.debug:
     var: do_machine
+
+- ansible.builtin.include_tasks: "./do-cb-{{ cb.service }}.yml"
+  loop: "{{ machine.callbacks }}"
+  loop_control:
+    loop_var: cb
