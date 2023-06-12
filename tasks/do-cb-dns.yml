@@ -1,0 +1,49 @@
+---
+- name: DO | CB DNS | Register DNS | Set IP
+  ansible.builtin.set_fact:
+    cb_value: "{{ do_machine.data.droplet.networks[cb.droplet_network] | community.general.json_query(q_cb) | join(' ') }}"
+  vars:
+    q_cb: "[?type=='{{ cb.droplet_network_type }}'].ip_address"
+  when: cb.value is not defined
+
+# Module does not provide a good lookup nor indepotency, so
+# let's load current records filter it and create only new ones.
+# It provides indepotency by name, and not value. Additional
+# checks should be done to achieve that.
+
+# - name: DO | CB DNS | Register DNS | Get RR
+#   community.digitalocean.digital_ocean_domain_record_info:
+#     state: present
+#     domain: "{{ cb.domain }}"
+#   register: reg_dns_zone_records
+
+# - name: DO | CB DNS | Register DNS | Show RRs
+#   ansible.builtin.debug:
+#     var: reg_dns_zone_records
+
+# - name: DO | CB DNS | Register DNS | Set list to add
+#   ansible.builtin.set_fact:
+#     rr_to_add: []
+
+# - name: DO | CB DNS | Register DNS | Discover value
+#   ansible.builtin.set_fact:
+#     rr_to_add: "{{ rr_to_add + [record] }}"
+#   when: reg_dns_zone_records.data.records | community.general.json_query(q_rr) | length <= 0
+#   with_items: "{{ cb.records }}"
+#   loop_control:
+#     loop_var: record
+#   vars:
+#     q_rr: "[?name=='{{ record.name }}']"
+
+# - name: DO | CB DNS | Register DNS | Show RRs to add
+#   ansible.builtin.debug:
+#     var: rr_to_add
+
+- name: DO | CB DNS | Register DNS | Create RR # noqa: args[module]
+  community.digitalocean.digital_ocean_domain_record:
+    state: present
+    domain: "{{ cb.domain }}"
+    type: "{{ cb.rr_type }}"
+    name: "{{ cb.rr_name }}"
+    data: "{{ record.value | d(cb_value) }}"
+    # force_update: yes
