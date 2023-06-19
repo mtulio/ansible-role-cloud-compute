@@ -20,6 +20,7 @@
     loop: "{{ _nsgs.results }}"
     loop_control:
       loop_var: nsg
+    no_log: true
 
   - name:  OCI | Prereq | Discovery NSGs | VNIC defaults
     when: "'create_vnic_details' not in machine_spec"
@@ -72,6 +73,11 @@
       msg:
       - "_image={{ _image }}"
       - "machine_spec={{ machine_spec }}"
+    when: debug | d(false)
+
+  - name: OCI | Prereq | Discovery Image | Show Name
+    debug:
+      msg: "image_name={{ (_image.images | first).display_name }}"
 
   - name: OCI | Prereq | Discovery Image | merge
     ansible.builtin.set_fact:
@@ -84,6 +90,7 @@
 # Machine Create
 - name: OCI | Show Spec
   debug: var=machine_spec
+  when: debug | d(false)
 
 - name: OCI | Create Instance
   oracle.oci.oci_compute_instance:

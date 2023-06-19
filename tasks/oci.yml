@@ -1,7 +1,7 @@
 ---
-
 - name: OCI | Show
   debug: var=machine
+  when: debug | d(false)
 
 - name: OCI | Machine init
   ansible.builtin.set_fact:

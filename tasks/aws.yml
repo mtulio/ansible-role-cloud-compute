@@ -102,6 +102,9 @@
     tower_callback: "{{ machine.tower_callback | d(omit) }}"
     user_data: "{{ machine.user_data | string | d(omit) }}"
   register: machine_out
+  until: "machine_out is not failed"
+  retries: 3
+  delay: 5
 
 - name: AWS | Machine created spec
   ansible.builtin.debug:
