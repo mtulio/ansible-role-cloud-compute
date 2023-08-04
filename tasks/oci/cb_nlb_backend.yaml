@@ -1,0 +1,39 @@
+---
+- name: OCI | Callback | Backend | facts
+  oracle.oci.oci_network_load_balancer_backend_set_facts:
+    backend_set_name: "{{ nlb_be.name }}"
+    network_load_balancer_id: "{{ nlb_id }}"
+  register: _bset
+
+- name: OCI | Callback | Backend | Set be_not_exist
+  ansible.builtin.set_fact:
+    be_not_exist: true
+
+- name: OCI | Callback | Backend | Check BE exists
+  ansible.builtin.set_fact:
+    be_not_exist: false
+  when: be.ip_address == machine_data.primary_private_ip
+  loop: "{{ (_bset.backend_sets | first).backends }}"
+  loop_control:
+    loop_var: be
+
+- name: OCI | Callback | Backend | Update when not present
+  when: be_not_exist
+  block:
+  - name: OCI | Callback | Backend | merge
+    ansible.builtin.set_fact:
+      backends: '{{ (_bset.backend_sets | first).backends + [{
+        "port": nlb_be.port,
+        "target_id": machine_data.id,
+        "ip_address": machine_data.primary_private_ip }] }}'
+
+  - name: OCI | Callback | Backend | update
+    oracle.oci.oci_network_load_balancer_backend_set:
+      backends: "{{ backends }}"
+      name: "{{ nlb_be.name }}"
+      network_load_balancer_id: "{{ nlb_id }}"
+
+- name: OCI | Callback | Backend | Msg
+  debug:
+    msg: "WARN: The backend [{{ machine_data.primary_private_ip }}:{{ nlb_be.port }}] is already present on backend_set [{{ nlb_be.name }}]"
+  when: not(be_not_exist)

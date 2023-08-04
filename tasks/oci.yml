@@ -1,0 +1,38 @@
+---
+- name: OCI | Show
+  debug: var=machine
+  when: debug | d(false)
+
+- name: OCI | Machine init
+  ansible.builtin.set_fact:
+    machine_nsg_ids: []
+    machine_subnet_id: ''
+    machine_image_id: ''
+    machine_spec: {}
+
+- name: OCI | Init spec
+  ansible.builtin.set_fact:
+    machine_spec: "{{ machine.spec }}"
+
+- name: List instances
+  oracle.oci.oci_compute_instance_facts:
+    compartment_id: "{{ machine_spec.compartment_id }}"
+    display_name: "{{ machine_spec.display_name }}"
+    sort_by: TIMECREATED
+    sort_order: ASC
+  register: reg_machines
+
+- name: OCI | Set Instance fact when exists
+  ansible.builtin.set_fact:
+    machine_data: "{{ reg_machines.instances | first }}"
+  when: reg_machines.instances | length > 0 
+
+- name: OCI | Create Init
+  ansible.builtin.include_tasks: "./oci/create.yaml"
+  when: reg_machines.instances | length == 0 
+
+- name: OCI | Start Instance callbacks
+  ansible.builtin.include_tasks: "./oci/cb_{{ cb.name }}.yaml"
+  loop: "{{ machine.callbacks | d([]) }}"
+  loop_control:
+    loop_var: cb
